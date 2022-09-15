@@ -25,7 +25,7 @@ type Image = {
   href: string;
   imageSrc: string;
   name: string;
-  type: string;
+  worktype: string;
   year: number;
 };
 
@@ -68,7 +68,7 @@ function BlurImage({ image }: { image: Image }) {
         />
       </div>
       <h3 className="mt-4 text-lg  text-gray-700">{image.name}</h3>
-      <p className="mt-1 text-sm font-medium text-gray-900">{image.type}</p>
+      <p className="mt-1 text-sm font-medium text-gray-900">{image.worktype}</p>
       <p className="mt-1 text-sm font-medium text-gold">{image.year}</p>
     </a>
   );
