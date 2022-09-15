@@ -25,7 +25,8 @@ type Image = {
   href: string;
   imageSrc: string;
   name: string;
-  username: string;
+  type: string;
+  year: number;
 };
 
 export default function Gallery({ images }: { images: Image[] }) {
