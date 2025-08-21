@@ -5,9 +5,23 @@ import pool from "../lib/database";
 
 export async function getStaticProps() {
   try {
+    // Validate environment variables
+    if (!process.env.DATABASE_URL) {
+      console.error("❌ DATABASE_URL environment variable is not set!");
+      return {
+        props: {
+          images: [],
+        },
+        revalidate: 3600,
+      };
+    }
+
     console.log("🔍 Fetching paintings from Neon database...");
+    console.log("📋 DATABASE_URL is set:", !!process.env.DATABASE_URL);
+    
+    // Try to query with explicit schema reference
     const { rows } = await pool.query(
-      "SELECT id, href, imagesrc as \"imageSrc\", name, worktype, year, rank FROM paintings ORDER BY rank DESC"
+      "SELECT id, href, imagesrc as \"imageSrc\", name, worktype, year, rank FROM public.paintings ORDER BY rank DESC"
     );
     
     console.log(`✅ Found ${rows.length} paintings in database`);

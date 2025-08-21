@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'GET') {
     try {
           const result = await pool.query(
-      'SELECT * FROM paintings ORDER BY rank DESC'
+      'SELECT * FROM public.paintings ORDER BY rank DESC'
     );
       res.status(200).json(result.rows);
     } catch (error) {
@@ -34,13 +34,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Shift existing paintings with rank >= new rank
       await pool.query(
-        'UPDATE paintings SET rank = rank + 1 WHERE rank >= $1',
+        'UPDATE public.paintings SET rank = rank + 1 WHERE rank >= $1',
         [rank]
       );
 
       // Insert new painting with specified rank
       const result = await pool.query(
-        'INSERT INTO paintings (imagesrc, name, worktype, year, rank) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        'INSERT INTO public.paintings (imagesrc, name, worktype, year, rank) VALUES ($1, $2, $3, $4, $5) RETURNING *',
         [imageSrc, name, worktype, year, rank]
       );
 
