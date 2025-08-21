@@ -1,20 +1,33 @@
 import Image from "next/image";
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import Link from "next/link";
+import pool from "../lib/database";
 
 export async function getStaticProps() {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-  );
+  try {
+    console.log("🔍 Fetching paintings from Neon database...");
+    const { rows } = await pool.query(
+      "SELECT id, href, imagesrc as \"imageSrc\", name, worktype, year, rank FROM paintings ORDER BY rank DESC"
+    );
+    
+    console.log(`✅ Found ${rows.length} paintings in database`);
+    console.log("📋 First painting:", rows[0]);
 
-  const { data } = await supabaseAdmin.from("swag").select("*").order("id");
-
-  return {
-    props: {
-      images: data,
-    },
-  };
+    return {
+      props: {
+        images: rows,
+      },
+      revalidate: 3600, // Revalidate every hour
+    };
+  } catch (error) {
+    console.error("❌ Database error:", error);
+    return {
+      props: {
+        images: [],
+      },
+      revalidate: 3600,
+    };
+  }
 }
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
@@ -22,27 +35,90 @@ function cn(...classes: string[]) {
 
 type Image = {
   id: number;
-  href: string;
+  href?: string;
   imageSrc: string;
   name: string;
   worktype: string;
   year: number;
+  rank: number;
 };
 
 export default function Gallery({ images }: { images: Image[] }) {
+  console.log("🎨 Gallery component received images:", images?.length || 0);
+  console.log("📋 First image:", images?.[0]);
+  
   return (
-    <div className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
-      <div className="text-center">
-        <p className="text-xl">Art</p>
-        <p className="mb-8">Victor Tenneroni</p>
+    <>
+      <div className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
+        <div className="text-center">
+          <p className="text-xl">Art</p>
+          <p className="mb-8">Victor Tenneroni</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+          {images?.map((image) => (
+            <BlurImage key={image.id} image={image} />
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
-        {images.map((image) => (
-          <BlurImage key={image.id} image={image} />
-        ))}
+      {/* Admin Button */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '32px',
+          right: '32px',
+          zIndex: 1000
+        }}
+      >
+        <Link 
+          href="/admin"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '64px',
+            height: '64px',
+            backgroundColor: 'rgba(60, 60, 60, 0.9)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '50%',
+            textDecoration: 'none',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+          }}
+          title="Admin Panel"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(40, 40, 40, 0.95)';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(60, 60, 60, 0.9)';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          <svg 
+            width="28" 
+            height="28" 
+            fill="none" 
+            stroke="rgba(230, 230, 230, 0.9)" 
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+        </Link>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -10,7 +10,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^1.35.6",
+    "@types/pg": "^8.15.5",
+    "dotenv": "^17.2.1",
     "next": "12.3.0",
+    "next-auth": "^4.24.11",
+    "pg": "^8.16.3",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
