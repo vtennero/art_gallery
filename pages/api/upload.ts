@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({ 
       url: publicUrl,
-      path: data?.path || fileName
+      path: data?.Key || fileName
     });
   } catch (error) {
     console.error('Upload error:', error);
