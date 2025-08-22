@@ -4,9 +4,4 @@ module.exports = {
   images: {
     domains: ['ccytbpimimkkaxsemdov.supabase.co'],
   },
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
 }
