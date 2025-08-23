@@ -15,17 +15,38 @@ export async function getStaticProps() {
       };
     }
 
-    console.log("🔍 Fetching top ranked paintings from Neon database...");
+    console.log("🔍 Fetching specific paintings from Neon database...");
     
-    const { rows } = await pool.query(
-      "SELECT id, href, imagesrc as \"imageSrc\", name, worktype, year, rank FROM paintings ORDER BY rank DESC LIMIT 8"
-    );
+    // Hardcoded list of specific image IDs for spinning grid
+    // Position 3 (index 3) = CENTER image with zoom effect
+    const spinningGridIds = [1, 2, 3, 4, 5, 6, 7, 8];
     
-    console.log(`✅ Found ${rows.length} top paintings in database`);
+    // Fetch the specific images for spinning grid
+    const spinningQuery = `
+      SELECT id, href, imagesrc as "imageSrc", name, worktype, year, rank 
+      FROM paintings 
+      WHERE id = ANY($1)
+      ORDER BY array_position($1, id)
+    `;
+    const { rows: spinningImages } = await pool.query(spinningQuery, [spinningGridIds]);
+    
+    // Fetch remaining images for background
+    const backgroundQuery = `
+      SELECT id, href, imagesrc as "imageSrc", name, worktype, year, rank 
+      FROM paintings 
+      WHERE id != ALL($1)
+      ORDER BY rank DESC
+    `;
+    const { rows: backgroundImages } = await pool.query(backgroundQuery, [spinningGridIds]);
+    
+    // Combine arrays - spinning images first, then background
+    const allImages = [...spinningImages, ...backgroundImages];
+    
+    console.log(`✅ Found ${spinningImages.length} spinning images and ${backgroundImages.length} background images`);
 
     return {
       props: {
-        images: rows,
+        images: allImages,
       },
       revalidate: 3600, // Revalidate every hour
     };
@@ -66,7 +87,7 @@ export default function TestAnimation({ images }: { images: Image[] }) {
   const gridRef = useRef<HTMLUListElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Split images: first 8 for spinning grid, rest for background
+  // Split images: first 8 are for spinning grid (already in correct order), rest for background
   const spinningImages = images.slice(0, 8);
   const backgroundImages = images.slice(8);
 
@@ -86,33 +107,73 @@ export default function TestAnimation({ images }: { images: Image[] }) {
   console.log("🔄 Spinning images:", spinningImages?.length || 0);
   console.log("🌄 Background images:", backgroundImages?.length || 0);
   
+  // Debug the ID changes
+  console.log("📊 First 8 image IDs:", images.slice(0, 8).map(img => img.id));
+  console.log("📊 Final spinning image IDs:", spinningImages.map(img => img.id));
+  console.log("📊 Center image (index 3) ID:", spinningImages[3]?.id);
+  console.log("🔍 Does ID 4 exist?", !!images.find(img => img.id === 4));
+  console.log("🔍 Does ID 5 exist in first 8?", !!images.slice(0, 8).find(img => img.id === 5));
+  console.log("🔍 Does ID 18 exist?", !!images.find(img => img.id === 18));
+  
   return (
     <>
       {/* Main container with scroll height */}
       <div style={{ height: '300vh', width: '100vw', overflowX: 'hidden' }}>
         
-        {/* Background images - static, no spinning */}
-        <div className="background-images">
-          {backgroundImages.map((image, index) => (
-            <div
-              key={`bg-${image.id}`}
-              className="background-image"
-              style={{
-                left: `${Math.random() * 80}%`,
-                top: `${Math.random() * 80}%`,
-                animationDelay: `${index * 0.5}s`
-              }}
-            >
-              <Image
-                src={image.imageSrc}
-                alt={image.name}
-                width={300}
-                height={300}
-                objectFit="cover"
-                className="bg-img"
-              />
-            </div>
-          ))}
+        {/* Background images grid */}
+        <div className="background-grid">
+          <div className="bg-column bg-column-1">
+            {/* Duplicate images for seamless loop */}
+            {[...backgroundImages.filter((_, i) => i % 6 === 0), ...backgroundImages.filter((_, i) => i % 6 === 0)].map((image, index) => (
+              <div key={`bg-1-${image.id}-${index}`} className="bg-item">
+                <img
+                  src={image.imageSrc}
+                  alt={image.name}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="bg-column bg-column-2">
+            {[...backgroundImages.filter((_, i) => i % 6 === 1), ...backgroundImages.filter((_, i) => i % 6 === 1)].map((image, index) => (
+              <div key={`bg-2-${image.id}-${index}`} className="bg-item">
+                <img
+                  src={image.imageSrc}
+                  alt={image.name}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="bg-column bg-column-3">
+            {[...backgroundImages.filter((_, i) => i % 6 === 2), ...backgroundImages.filter((_, i) => i % 6 === 2)].map((image, index) => (
+              <div key={`bg-3-${image.id}-${index}`} className="bg-item">
+                <img
+                  src={image.imageSrc}
+                  alt={image.name}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="bg-column bg-column-4">
+            {[...backgroundImages.filter((_, i) => i % 6 === 3), ...backgroundImages.filter((_, i) => i % 6 === 3)].map((image, index) => (
+              <div key={`bg-4-${image.id}-${index}`} className="bg-item">
+                <img src={image.imageSrc} alt={image.name} />
+              </div>
+            ))}
+          </div>
+          <div className="bg-column bg-column-5">
+            {[...backgroundImages.filter((_, i) => i % 6 === 4), ...backgroundImages.filter((_, i) => i % 6 === 4)].map((image, index) => (
+              <div key={`bg-5-${image.id}-${index}`} className="bg-item">
+                <img src={image.imageSrc} alt={image.name} />
+              </div>
+            ))}
+          </div>
+          <div className="bg-column bg-column-6">
+            {[...backgroundImages.filter((_, i) => i % 6 === 5), ...backgroundImages.filter((_, i) => i % 6 === 5)].map((image, index) => (
+              <div key={`bg-6-${image.id}-${index}`} className="bg-item">
+                <img src={image.imageSrc} alt={image.name} />
+              </div>
+            ))}
+          </div>
         </div>
         
         {/* Fixed spinning grid container */}
@@ -121,7 +182,7 @@ export default function TestAnimation({ images }: { images: Image[] }) {
             ref={gridRef}
             className="image-grid"
             style={{
-              transform: `translate(-50%, -50%) scale(${0.4 + (0.6 * scrollProgress)}) rotate(${270 * scrollProgress}deg)`
+              transform: `translate(-50%, -50%) scale(${0.5 + (0.5 * scrollProgress)}) rotate(${270 * scrollProgress}deg)`
             }}
           >
             {spinningImages.map((image, index) => {
@@ -129,7 +190,7 @@ export default function TestAnimation({ images }: { images: Image[] }) {
               
               // Index 3 is the center-ish image (4th image, positioned at x1:4, x2:7, y1:4, y2:7)
               const isCenterImage = index === 3;
-              const centerScale = isCenterImage ? 1 + (scrollProgress * 0.8) : 1;
+              const centerScale = isCenterImage ? 1 + (scrollProgress * 0.4) : 1;
               
               return (
                 <li
@@ -164,7 +225,7 @@ export default function TestAnimation({ images }: { images: Image[] }) {
 
         .image-grid {
           --big-tile-size: 50vmin;
-          --scale: 0.4;
+          --scale: 0.5;
           --tile-size: calc(var(--big-tile-size) / 3);
           list-style-type: none;
           padding: 0;
@@ -178,31 +239,39 @@ export default function TestAnimation({ images }: { images: Image[] }) {
           transition: transform 0.1s ease-out;
         }
 
-        .image-grid img {
-          height: 200% !important;
-          min-width: 200% !important;
-          aspect-ratio: 1;
-          object-fit: cover !important;
-          position: absolute !important;
-          top: 50% !important;
-          left: 50% !important;
-          transform-origin: center center;
-          transition: transform 0.1s ease-out;
+        /* Mobile: smaller starting size to fit screen width */
+        @media (max-width: 768px) {
+          .image-grid {
+            --big-tile-size: 70vw;
+            --scale: 0.6;
+          }
         }
 
-        .image-grid li {
-          padding: 0;
-          position: relative;
-          background: red;
-          max-inline-size: 100%;
-          grid-column: var(--x1, auto) / var(--x2, auto);
-          grid-row: var(--y1, auto) / var(--y2, auto);
-          border-radius: 8px;
-          overflow: hidden;
-        }
+                 .image-grid img {
+           height: 140% !important;
+           min-width: 140% !important;
+           aspect-ratio: 1;
+           object-fit: cover !important;
+           position: absolute !important;
+           top: 50% !important;
+           left: 50% !important;
+           transform-origin: center center;
+           transition: transform 0.1s ease-out;
+         }
 
-        /* Background images */
-        .background-images {
+                 .image-grid li {
+           padding: 0;
+           position: relative;
+           background: #e5e5e5;
+           max-inline-size: 100%;
+           grid-column: var(--x1, auto) / var(--x2, auto);
+           grid-row: var(--y1, auto) / var(--y2, auto);
+           border-radius: 8px;
+           overflow: hidden;
+         }
+
+        /* Background grid - fills entire screen */
+        .background-grid {
           position: fixed;
           top: 0;
           left: 0;
@@ -210,33 +279,106 @@ export default function TestAnimation({ images }: { images: Image[] }) {
           height: 100vh;
           z-index: -1;
           opacity: 0.3;
+          display: flex;
+          gap: 15px;
+          padding: 0 10px;
         }
 
-        .background-image {
-          position: absolute;
-          width: 150px;
-          height: 150px;
-          border-radius: 8px;
-          overflow: hidden;
-          animation: float 8s ease-in-out infinite;
+        .bg-column {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
         }
 
-        .background-image:nth-child(even) {
-          animation-direction: reverse;
+        .bg-column-1 {
+          width: 14%;
         }
 
-        .bg-img {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
+        .bg-column-2 {
+          width: 16%;
         }
 
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
+        .bg-column-3 {
+          width: 15%;
+        }
+
+        .bg-column-4 {
+          width: 17%;
+        }
+
+        .bg-column-5 {
+          width: 16%;
+        }
+
+        .bg-column-6 {
+          width: 15%;
+        }
+
+        /* Mobile: 3 columns */
+        @media (max-width: 768px) {
+          .bg-column-4, .bg-column-5, .bg-column-6 {
+            display: none;
           }
-          50% {
-            transform: translateY(-20px);
+          .bg-column-1 {
+            width: 30%;
+          }
+          .bg-column-2 {
+            width: 35%;
+          }
+          .bg-column-3 {
+            width: 35%;
+          }
+        }
+
+        .bg-column-1 {
+          animation: continuousUp 40s linear infinite;
+        }
+
+        .bg-column-2 {
+          animation: continuousDown 45s linear infinite;
+        }
+
+        .bg-column-3 {
+          animation: continuousUp 50s linear infinite;
+        }
+
+        .bg-column-4 {
+          animation: continuousDown 55s linear infinite;
+        }
+
+        .bg-column-5 {
+          animation: continuousUp 60s linear infinite;
+        }
+
+        .bg-column-6 {
+          animation: continuousDown 65s linear infinite;
+        }
+
+        .bg-item {
+          width: 100%;
+        }
+
+        .bg-item img {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+
+        @keyframes continuousUp {
+          0% {
+            transform: translateY(0%);
+          }
+          100% {
+            transform: translateY(-50%);
+          }
+        }
+
+        @keyframes continuousDown {
+          0% {
+            transform: translateY(-50%);
+          }
+          100% {
+            transform: translateY(0%);
           }
         }
 
