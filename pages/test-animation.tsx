@@ -123,8 +123,8 @@ export default function TestAnimation({ images }: { images: Image[] }) {
         {/* Background images grid */}
         <div className="background-grid">
           <div className="bg-column bg-column-1">
-            {/* Duplicate images for seamless loop */}
-            {[...backgroundImages.filter((_, i) => i % 6 === 0), ...backgroundImages.filter((_, i) => i % 6 === 0)].map((image, index) => (
+                         {/* Triple images for seamless loop */}
+             {[...backgroundImages.filter((_, i) => i % 6 === 0), ...backgroundImages.filter((_, i) => i % 6 === 0), ...backgroundImages.filter((_, i) => i % 6 === 0)].map((image, index) => (
               <div key={`bg-1-${image.id}-${index}`} className="bg-item">
                 <img
                   src={image.imageSrc}
@@ -134,7 +134,7 @@ export default function TestAnimation({ images }: { images: Image[] }) {
             ))}
           </div>
           <div className="bg-column bg-column-2">
-            {[...backgroundImages.filter((_, i) => i % 6 === 1), ...backgroundImages.filter((_, i) => i % 6 === 1)].map((image, index) => (
+            {[...backgroundImages.filter((_, i) => i % 6 === 1), ...backgroundImages.filter((_, i) => i % 6 === 1), ...backgroundImages.filter((_, i) => i % 6 === 1)].map((image, index) => (
               <div key={`bg-2-${image.id}-${index}`} className="bg-item">
                 <img
                   src={image.imageSrc}
@@ -144,7 +144,7 @@ export default function TestAnimation({ images }: { images: Image[] }) {
             ))}
           </div>
           <div className="bg-column bg-column-3">
-            {[...backgroundImages.filter((_, i) => i % 6 === 2), ...backgroundImages.filter((_, i) => i % 6 === 2)].map((image, index) => (
+            {[...backgroundImages.filter((_, i) => i % 6 === 2), ...backgroundImages.filter((_, i) => i % 6 === 2), ...backgroundImages.filter((_, i) => i % 6 === 2)].map((image, index) => (
               <div key={`bg-3-${image.id}-${index}`} className="bg-item">
                 <img
                   src={image.imageSrc}
@@ -154,21 +154,21 @@ export default function TestAnimation({ images }: { images: Image[] }) {
             ))}
           </div>
           <div className="bg-column bg-column-4">
-            {[...backgroundImages.filter((_, i) => i % 6 === 3), ...backgroundImages.filter((_, i) => i % 6 === 3)].map((image, index) => (
+            {[...backgroundImages.filter((_, i) => i % 6 === 3), ...backgroundImages.filter((_, i) => i % 6 === 3), ...backgroundImages.filter((_, i) => i % 6 === 3)].map((image, index) => (
               <div key={`bg-4-${image.id}-${index}`} className="bg-item">
                 <img src={image.imageSrc} alt={image.name} />
               </div>
             ))}
           </div>
           <div className="bg-column bg-column-5">
-            {[...backgroundImages.filter((_, i) => i % 6 === 4), ...backgroundImages.filter((_, i) => i % 6 === 4)].map((image, index) => (
+            {[...backgroundImages.filter((_, i) => i % 6 === 4), ...backgroundImages.filter((_, i) => i % 6 === 4), ...backgroundImages.filter((_, i) => i % 6 === 4)].map((image, index) => (
               <div key={`bg-5-${image.id}-${index}`} className="bg-item">
                 <img src={image.imageSrc} alt={image.name} />
               </div>
             ))}
           </div>
           <div className="bg-column bg-column-6">
-            {[...backgroundImages.filter((_, i) => i % 6 === 5), ...backgroundImages.filter((_, i) => i % 6 === 5)].map((image, index) => (
+            {[...backgroundImages.filter((_, i) => i % 6 === 5), ...backgroundImages.filter((_, i) => i % 6 === 5), ...backgroundImages.filter((_, i) => i % 6 === 5)].map((image, index) => (
               <div key={`bg-6-${image.id}-${index}`} className="bg-item">
                 <img src={image.imageSrc} alt={image.name} />
               </div>
@@ -185,33 +185,56 @@ export default function TestAnimation({ images }: { images: Image[] }) {
               transform: `translate(-50%, -50%) scale(${0.5 + (0.5 * scrollProgress)}) rotate(${270 * scrollProgress}deg)`
             }}
           >
-            {spinningImages.map((image, index) => {
-              const position = gridPositions[index] || gridPositions[0];
-              
-              // Index 3 is the center-ish image (4th image, positioned at x1:4, x2:7, y1:4, y2:7)
-              const isCenterImage = index === 3;
-              const centerScale = isCenterImage ? 1 + (scrollProgress * 0.4) : 1;
-              
-              return (
-                <li
-                  key={image.id}
-                  style={{
-                    '--x1': position.x1,
-                    '--x2': position.x2,
-                    '--y1': position.y1,
-                    '--y2': position.y2,
-                  } as React.CSSProperties}
-                >
-                  <img
-                    src={image.imageSrc}
-                    alt={image.name}
-                    style={{
-                      transform: `translate(-50%, -50%) rotate(${-270 * scrollProgress}deg) scale(${centerScale})`
-                    }}
-                  />
-                </li>
-              );
-            })}
+                         {spinningImages.map((image, index) => {
+               const position = gridPositions[index] || gridPositions[0];
+               
+               // Index 3 is the center-ish image (4th image, positioned at x1:4, x2:7, y1:4, y2:7)
+               const isCenterImage = index === 3;
+               const centerScale = isCenterImage ? 1 + (scrollProgress * 0.4) : 1;
+               
+               // Scatter animation when scroll > 0.8
+               const scatterProgress = scrollProgress > 0.8 ? (scrollProgress - 0.8) / 0.2 : 0;
+               const scatterDirections = [
+                 { x: -200, y: -150 }, // Top-left
+                 { x: 200, y: -150 },  // Top-right
+                 { x: -250, y: 0 },    // Left
+                 { x: 0, y: 0 },       // Center (stays)
+                 { x: 250, y: 0 },     // Right
+                 { x: -200, y: 150 },  // Bottom-left
+                 { x: 0, y: 200 },     // Bottom
+                 { x: 200, y: 150 }    // Bottom-right
+               ];
+               const scatter = scatterDirections[index] || { x: 0, y: 0 };
+               const scatterX = scatter.x * scatterProgress;
+               const scatterY = scatter.y * scatterProgress;
+               
+               // Fade out animation
+               const fadeProgress = scrollProgress > 0.9 ? (scrollProgress - 0.9) / 0.1 : 0;
+               const opacity = 1 - fadeProgress;
+               
+               return (
+                 <li
+                   key={image.id}
+                   style={{
+                     '--x1': position.x1,
+                     '--x2': position.x2,
+                     '--y1': position.y1,
+                     '--y2': position.y2,
+                     opacity: opacity,
+                     transition: 'opacity 0.1s ease-out'
+                   } as React.CSSProperties}
+                 >
+                   <img
+                     src={image.imageSrc}
+                     alt={image.name}
+                     style={{
+                       transform: `translate(calc(-50% + ${scatterX}px), calc(-50% + ${scatterY}px)) rotate(${-270 * scrollProgress}deg) scale(${centerScale})`,
+                       transition: 'transform 0.1s ease-out'
+                     }}
+                   />
+                 </li>
+               );
+             })}
           </ul>
         </main>
 
@@ -364,23 +387,23 @@ export default function TestAnimation({ images }: { images: Image[] }) {
           display: block;
         }
 
-        @keyframes continuousUp {
-          0% {
-            transform: translateY(0%);
-          }
-          100% {
-            transform: translateY(-50%);
-          }
-        }
+                 @keyframes continuousUp {
+           0% {
+             transform: translateY(0%);
+           }
+           100% {
+             transform: translateY(-33.33%);
+           }
+         }
 
-        @keyframes continuousDown {
-          0% {
-            transform: translateY(-50%);
-          }
-          100% {
-            transform: translateY(0%);
-          }
-        }
+         @keyframes continuousDown {
+           0% {
+             transform: translateY(-33.33%);
+           }
+           100% {
+             transform: translateY(0%);
+           }
+         }
 
 
 
