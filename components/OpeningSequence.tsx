@@ -56,9 +56,9 @@ export default function OpeningSequence({
         {[0, 1, 2, 3, 4, 5].map(columnIndex => (
           <div key={columnIndex} className={`bg-column bg-column-${columnIndex + 1}`}>
             {/* Triple images for seamless loop */}
-            {[...backgroundImages.filter((_, i) => i % 6 === columnIndex), 
-              ...backgroundImages.filter((_, i) => i % 6 === columnIndex), 
-              ...backgroundImages.filter((_, i) => i % 6 === columnIndex)
+            {[...(backgroundImages || []).filter((_, i) => i % 6 === columnIndex), 
+              ...(backgroundImages || []).filter((_, i) => i % 6 === columnIndex), 
+              ...(backgroundImages || []).filter((_, i) => i % 6 === columnIndex)
             ].map((image, index) => (
               <div key={`bg-${columnIndex + 1}-${image.id}-${index}`} className="bg-item">
                 <img
@@ -80,7 +80,7 @@ export default function OpeningSequence({
             transform: `translate(-50%, -50%) scale(${0.5 + (0.5 * scrollProgress)}) rotate(${270 * scrollProgress}deg)`
           }}
         >
-          {spinningImages.map((image, index) => {
+          {(spinningImages || []).map((image, index) => {
             const position = gridPositions[index] || gridPositions[0];
             
             // Index 3 is the center image with special zoom effect
