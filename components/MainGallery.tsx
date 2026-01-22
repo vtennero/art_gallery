@@ -34,13 +34,15 @@ export default function MainGallery({ images, isTransitioning }: MainGalleryProp
   const [imageLoaded, setImageLoaded] = useState(false);
   const [clickedImageRect, setClickedImageRect] = useState<DOMRect | null>(null);
   const [shareNotification, setShareNotification] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   // Handle scroll wheel for horizontal navigation (desktop only)
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       if (window.innerWidth >= 768) {
         e.preventDefault();
-        
+        setHasScrolled(true);
+
         if (scrollContainerRef.current) {
           const container = scrollContainerRef.current;
           const scrollAmount = e.deltaY * 2;
@@ -302,6 +304,24 @@ export default function MainGallery({ images, isTransitioning }: MainGalleryProp
               </div>
             );
           })}
+        </div>
+
+        {/* Desktop Scroll Prompt */}
+        <div className={`hidden md:flex fixed bottom-24 left-1/2 transform -translate-x-1/2 flex-col items-center gap-2 text-gray-400 pointer-events-none transition-opacity duration-700 ease-out ${
+          hasScrolled ? 'opacity-0' : 'opacity-100 animate-pulse'
+        }`}>
+          <span className="text-sm font-light tracking-wide">Scroll to explore</span>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className={hasScrolled ? '' : 'animate-bounce'}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
         </div>
       </div>
 

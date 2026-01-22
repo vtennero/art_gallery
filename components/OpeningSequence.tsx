@@ -131,6 +131,41 @@ export default function OpeningSequence({
             );
           })}
         </ul>
+
+        {/* Desktop Scroll Prompt - right of canvas */}
+        <div
+          className="hidden md:flex fixed flex-col items-center gap-4 text-gray-400 pointer-events-none"
+          style={{
+            top: '50%',
+            left: 'calc(50% + 42vmin)',
+            transform: 'translateY(-50%)',
+            opacity: scrollProgress > 0.05 ? 0 : 1,
+            transition: 'opacity 0.7s ease-out'
+          }}
+        >
+          <span
+            className={scrollProgress > 0.05 ? '' : 'animate-pulse'}
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 200,
+              letterSpacing: '0.4em',
+              fontFamily: 'Georgia, "Times New Roman", serif'
+            }}
+          >
+            scroll
+          </span>
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1"
+            className={scrollProgress > 0.05 ? '' : 'animate-bounce'}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </div>
       </main>
 
       {/* Opening sequence styles */}
